@@ -16,6 +16,15 @@ document.addEventListener("dragend", () => {
     });
 }, true);
 
+Hooks.on("renderApplicationV2", (application, element, context, options) => {
+    if (options?.isFirstRender) globalThis.canvas?.aspects?.clearSelection?.();
+});
+Hooks.on("renderApplicationV1", (application) => {
+    if (["Actor", "Item"].includes(application?.document?.documentName)) {
+        globalThis.canvas?.aspects?.clearSelection?.();
+    }
+});
+
 function openAspectManager() {
     const existing = Object.values(ui.windows).find(w => w instanceof SceneAspectsApp);
     if (existing) existing.render(true);
@@ -904,8 +913,6 @@ Hooks.on("updateJournalEntry", async (doc, change, options, userId) => {
     }
 });
 
-// FateX 1.6 moved sheets to ApplicationV2: "renderActorSheet" no longer fires,
-// V2 sheets fire "renderActorSheetV2" with (app, element, context, options).
 function onActorSheetRender(fn) {
     Hooks.on("renderActorSheet", fn);
     Hooks.on("renderActorSheetV2", fn);

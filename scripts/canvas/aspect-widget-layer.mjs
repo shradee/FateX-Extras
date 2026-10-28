@@ -879,6 +879,17 @@ export class AspectWidgetsLayer extends foundry.canvas.layers.InteractionLayer {
         return this.selectedIds.has(placementId);
     }
 
+    _isSelectionToolActive() {
+        const controls = ui.controls;
+        const control = controls?.control ?? controls?.activeControl;
+        const tool = controls?.tool ?? controls?.activeTool;
+        const controlName = typeof control === "string" ? control : control?.name;
+        const toolName = typeof tool === "string" ? tool : tool?.name;
+        if (controlName && controlName !== "tokens") return false;
+        if (toolName) return toolName === "select";
+        return !!canvas.tokens?.active;
+    }
+
     select(placementId, { append = false, toggle = false } = {}) {
         if (toggle) {
             if (this.selectedIds.has(placementId)) this.selectedIds.delete(placementId);
@@ -1028,6 +1039,7 @@ export class AspectWidgetsLayer extends foundry.canvas.layers.InteractionLayer {
                 if (e.button !== 0) return;
                 if (e.ctrlKey || e.metaKey || e.shiftKey) return;
                 if (!canvas.ready) return;
+                if (!this._isSelectionToolActive()) return;
                 const world = (() => {
                     try {
                         if (canvas.canvasCoordinatesFromClient) {
@@ -1096,6 +1108,7 @@ export class AspectWidgetsLayer extends foundry.canvas.layers.InteractionLayer {
 
                 if (e.button !== 0) return;
                 if (e.ctrlKey || e.shiftKey || e.metaKey) return;
+                if (!this._isSelectionToolActive()) return;
                 const world = (() => {
                     try { return canvas.canvasCoordinatesFromClient({ x: e.clientX, y: e.clientY }); } catch { return null; }
                 })();
