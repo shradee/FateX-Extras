@@ -904,7 +904,14 @@ Hooks.on("updateJournalEntry", async (doc, change, options, userId) => {
     }
 });
 
-Hooks.on("renderActorSheet", (sheet, html, data) => {
+// FateX 1.6 moved sheets to ApplicationV2: "renderActorSheet" no longer fires,
+// V2 sheets fire "renderActorSheetV2" with (app, element, context, options).
+function onActorSheetRender(fn) {
+    Hooks.on("renderActorSheet", fn);
+    Hooks.on("renderActorSheetV2", fn);
+}
+
+onActorSheetRender((sheet, html, data) => {
     if (sheet.actor.type !== "character") return;
     const $html = $(html);
 
@@ -977,8 +984,8 @@ Hooks.on("renderActorSheet", (sheet, html, data) => {
             relativeContainer.append(toolsHtml);
             const toolsContainer = relativeContainer.find('.fatex-extras-item-tools');
 
-            let chatIcon = relativeContainer.find('.fatex-js-item-to-chat');
-            if (chatIcon.length === 0 && item.type === "consequence") {
+            let chatIcon = relativeContainer.find('i.fatex-js-item-to-chat');
+            if (chatIcon.length === 0) {
                 chatIcon = $(`<i class="fatex-js-item-to-chat fatex-actions__icon fatex-actions__icon--no-hide fa fa-comment" data-item="${itemId}" style="pointer-events: all;"></i>`);
             }
 
@@ -1025,7 +1032,7 @@ Hooks.on("renderActorSheet", (sheet, html, data) => {
     });
 });
 
-Hooks.on("renderActorSheet", (sheet, html, data) => {
+onActorSheetRender((sheet, html, data) => {
     const actor = sheet.actor;
     if (!actor || (actor.type !== "character" && actor.type !== "npc")) return;
     const $html = $(html);
@@ -1038,7 +1045,7 @@ Hooks.on("renderActorSheet", (sheet, html, data) => {
         const isConsequence = item.type === "consequence";
         const color = isConsequence ? "#b83636" : "#6b7280";
         const $actions = $el.find(".fatex-actions--item, .fatex-actions");
-        const $chatBtn = $el.find(".fatex-js-item-to-chat");
+        const $chatBtn = $el.find("i.fatex-js-item-to-chat");
         const kindClass = isConsequence ? "fatex-drag--consequence" : "fatex-drag--aspect";
         const $handle = $(`<i class="fas fa-share-from-square fatex-drag-scene-handle ${kindClass}" draggable="true" title="Drag to scene"></i>`);
         if ($chatBtn.length) {
